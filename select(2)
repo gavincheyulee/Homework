@@ -1,0 +1,842 @@
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <conio.h>
+using namespace std;  
+//定义课程
+class course        //某个学生所学的课程中的某一个
+{public:
+	char cname[20];  //课程名称
+	float grade;    //课程成绩
+	course *Next;   //指向下一个课程的指针
+};
+//学生类
+class student
+{public:	student()
+	{	root = NULL;
+		const int maxcourse = 5;
+		factcourse = 0;}
+	void readname(char N[] );    //读入学生的姓名
+	void getname(char N[]);     //得到学生的姓名
+	void wrecourse(char N[],float score); //要据课程名写入学生课程的成绩
+	float average();       //学生课程的平均成绩
+	void addcourse(char N[],float g);  //给学生增加一门课
+	int findcourse(char N[]);    //查找是否已有此课程,如果有返回,如果没有返回
+	int retfactcourse()
+	{ return factcourse;}         //得到所学的课程数目
+	course *retroot()
+	{ return root;   }   //利用键表将所有的课程保存起来
+	int retmaxcourse()
+	{ return 5;   }   //得到最多可学的课程数目
+	void clrroot()      //清零
+	{	root = NULL;
+		factcourse = 0;}
+private:	char sname[20];        //学生的姓名
+		int maxcourse;      //学生最多可以学五门课程
+		int factcourse;      //学生实际所学的课程数目
+		course *root;      //课程的根结点指针
+};
+void student::readname (char N[])//读入学生的姓名
+{ strcpy(sname,N); }
+void student::getname(char N[])//得到学生的姓名
+{ strcpy(N,sname); }
+void student::wrecourse(char N[],float score)//要据课程名写入学生课程的成绩
+{	course *p = root;
+	if(p==NULL)
+		return;
+	if(p!=NULL)
+		p = p->Next;
+	while(p)
+	{	if(strcmp(p->cname,N)==0)
+			p->grade = score;
+		p = p->Next;}
+}
+float student::average()//学生课程的平均成绩
+{	float aver=0.0;
+	course *p = root;
+	while (p)
+	{ aver = aver+p->grade; }
+	aver = aver/factcourse;
+	return aver; }
+void student::addcourse (char N[],float g)//给学生增加一门课
+{	course *s = new course;
+	s->Next=NULL;
+	if(root == NULL)
+		root = s;
+	course *p = root;
+	course *newcourse = new course;
+	newcourse->Next = p->Next;
+	p->Next=newcourse;
+	strcpy(newcourse->cname,N);
+	newcourse->grade = g;
+	factcourse++;}
+int student::findcourse (char N[])//查找是否已有此课程,如果有返回,如果没有返回
+{	course *p = root;
+	if(root==NULL)
+		return 0;
+	p = p->Next;
+	while(p)
+	{  if(strcmp(p->cname,N)==0)
+			return 1;
+		p = p->Next;}
+	return 0; }
+class studentdb
+{public:
+	student stu;
+	studentdb *Next; };
+struct studentname
+{	char tname[20];       //学生的名字
+	float  result;     //学生所得的该课程分数
+	studentname *Next; };
+ //课程类
+class subject
+{public:
+	subject()
+	{	first = NULL;
+		maxstudent=30;
+		activestudnet=0; }
+	float readcredit();    //得到课程的学分
+	void  getcredit(float a);  //设置学分
+	float getaverage();    //得到学生的平均成绩
+	float getresult(char N[]);  //查找某个学生的成绩
+	void  getkname(char N[]);  //读出课程的名称
+	void  setkname(char N[]);  //读入课程的名称
+	studentname *retfirst()
+	{  return first;  }  //返回根结点
+	void findstudent(studentdb *P);  //根据该课程的名称,寻找选这课程的学生
+	int retactivestudent()
+	{  return activestudnet; } //返回实际学生数
+	int retmaxstudent()
+	{  return 30;   }  //返回最多学生数
+	void clractivestudnet()
+	{  activestudnet = 0;  } //从文件中读出来后将实际学生数清零
+private:
+	int maxstudent;    //最多学生数
+	int activestudnet;   //实际学生数
+	studentname *first;   //学生名单
+	float credit;    //该课程的学分
+	float averagerusult;  //该课程的平均成绩
+	char kname[20];    //该课程的名称
+};
+float subject::readcredit ()//得到课程的学分
+{  return credit; }
+void subject::getcredit (float a)//设置学分
+{  credit=a; }
+float subject::getaverage()//得到学生的平均成绩
+{	float k = 0.0;
+	studentname *p;
+	p=first->Next;
+	if(p==NULL)
+		return 0;
+	while(p)
+	{	k = k + p->result;
+		p = p->Next ; }
+	return k/activestudnet; }
+float subject::getresult (char N[]) //查找某个学生的成绩
+{	studentname *p;
+	p = first;
+	while(p)
+	{	if(strcpy(p->tname ,N)==0)
+			return p->result;
+		p = p->Next ; }
+	return -1; }
+void subject::getkname (char N[])  //读出课程的名称
+{  strcpy(N,kname); }
+void subject::setkname (char N[]) //读入课程的名称
+{ strcpy(kname,N); }
+void subject::findstudent(studentdb *P) //根据该课程的名称,寻找选这课程的学生
+{	studentname *newcode = new studentname;
+	newcode->Next=NULL;
+	first = newcode;
+	studentname *T = first;
+	studentdb *K = P->Next;
+	while(K)
+	{	course *Y = K->stu.retroot();
+		if(Y ==NULL)
+		{ K = K->Next;
+			continue; }
+		if(Y!=NULL)
+			Y = Y->Next;
+		while(Y)
+		{ if(strcmp(Y->cname,kname)==0)
+			{	studentname *Acode = new studentname;
+				char Name[20];
+				K->stu.getname(Name);
+				strcpy(Acode->tname,Name);
+				Acode->result = Y->grade;
+				Acode->Next = T->Next;
+				T->Next = Acode;
+				activestudnet = activestudnet + 1;
+				break; }
+			Y = Y->Next; }
+		K = K->Next; }
+	return ; }
+void tuichu()
+{	system("cls");
+	cout<<"\n\n谢谢你使用选修课系统\n\n"<<endl;
+	cout<<"\n      you're welcome !  \n"<<endl;
+	 getch();
+	exit(-1); }
+//总菜单
+char menu()
+{	int k=0;
+	char a[3],c,i;
+	system("cls");
+	cout<<endl<<endl;
+	cout<<"*******************************************\n"
+		<<"*                                         *\n"
+		<<"*              学生选修课系统             *\n"
+		<<"*                                         *\n"
+		<<"*                                         *\n"
+		<<"*     操作方式:                           *\n"
+		<<"*               1.选修课系统学生端        *\n"
+		<<"*                                         *\n"
+		<<"*               2.选修课系统管理端        *\n"
+		<<"*                                         *\n"
+		<<"*******************************************\n"<<endl;
+	while(1)
+	{	cout<<"\n\t\t请选择登入方式: ";
+		cin>>a;
+		if(strlen(a)==1)
+		{	for(i='1';i<='2';i++)
+			{	c=i;
+				if(c==a[0])
+					return c; }
+		}
+		cerr<<"\n\n\t\t\t\t输入有误!\n"<<endl;
+		k++;
+		if(k>2)
+		{	system("cls");
+			cerr<<"\n\n\n\t\t~~提示~~:错误输入次数超过三次，你将被强制退出!!\n\n"<<endl;
+			cout<<"\t\t按任意键继续"<<endl;
+			getch();
+			tuichu(); }
+	}
+  }
+//选修课系统端操作
+char custom()
+{	char A[10];char b;char i;int k = 0;
+	system("cls");;
+	cout<<"\n\n\n"
+		<<"※※※※※※※※※※※※※※※※※※※※※※※※※※\n"
+		<<"※                选修课系统学生端                ※\n"
+		<<"※                                                ※\n"
+		<<"※                    操作方式:.                  ※\n"
+		<<"※                   1、 学生选课                 ※\n"
+		<<"※                   2、 学生情况                 ※\n"
+		<<"※                   3、 选课情况                 ※\n"
+		<<"※                   4、 退出系统                 ※\n"
+		<<"※                                                ※\n"
+		<<"※※※※※※※※※※※※※※※※※※※※※※※※※※\n"<<endl;
+	while(1)
+	{	cout<<"\t\t\t请选择操作方式: ";
+		cin>>A;
+		if(strlen(A)==1)
+		{	for(i='1';i<='4';i++)
+			{	b=i;
+				if(b==A[0]) return b; }
+		}
+		cerr<<"\n\t\t\t\t输入有误!\n"<<endl;
+		k++;
+		if(k>2)
+		{	system("cls");
+			cerr<<"\n\n\t\t\t~~提示~~：错误输入超过三次!你将被强制退出!!\n"<<endl;
+			cout<<"\t\t按任意键继续"<<endl;
+			getch();
+			tuichu(); }
+	}
+}
+char server()
+{	char A[10];char b;char i;int k = 0;system("cls");;
+	cout<<"\n\n\n"
+		<<"※※※※※※※※※※※※※※※※※※※※※※※※※\n"
+		<<"※                                              ※\n"
+		<<"※                 选修课系统管理端             ※\n"
+		<<"※                                              ※\n"
+		<<"※    操作方式:                                 ※\n"
+		<<"※            1.增加学生     2.增加课程         ※\n"
+		<<"※            3.删除学生     4.删除课程         ※\n"
+		<<"※            5.填写成绩     6.更改学分         ※\n"
+		<<"※            7.学生情况     8.选课情况         ※\n"
+		<<"※            9.保存数据     0.退出系统         ※\n"
+		<<"※                                              ※\n"
+		<<"※※※※※※※※※※※※※※※※※※※※※※※※※\n"<<endl;
+	while(1)
+	{	cout<<"\t\t 请选择操作方式: ";
+		cin>>A;
+		if(strlen(A)==1)
+		{	for(i='0';i<='9';i++)
+			{	b=i;
+				if(b==A[0])
+					return b; }
+		}
+		cerr<<"\n\t\t\t\t输入有误!\n"<<endl;;
+		k++;
+		if(k>2)
+		{	cerr<<"错误输入超过三次!\n";
+			exit(-1); }
+	}
+}
+//密码检查
+void password()
+{
+int k=0,i;
+char A[]="admin";
+char B[10];
+char a;
+system("cls");
+for(i=0;i<8;i++)
+cout<<endl;
+while(k<=2)
+{
+printf("\t\t\t请输入管理员密码:");
+i=0;
+while(1)
+{
+a=getch();
+if(a==13)
+break;
+B[i]=a;
+i++;
+printf("*");
+}
+B[i]='\0';
+if(strcmp(A,B)==0)
+return;
+else
+{
+k++;
+cerr<<"\n\n\t\t\t密码输入错误!请重新输入!\n"<<endl;
+}
+if(k>=3)
+{
+system("cls");
+cerr<<"\n\n\t\t\t输入错误密码超过三次!请按任意键退出.."<<endl;
+getch();
+tuichu();
+}
+}
+}
+struct subjectdb
+{	subject sub;
+	subjectdb *Next;};
+int menu_2_7(studentdb *P);
+int menu_2_9(studentdb *Y,subjectdb *P);
+int menu_2_8(subjectdb *P);
+//学生端功能函数
+int menu_1_1(studentdb *P,subjectdb *X)    //学生选课
+{	system("cls");
+	cout<<"\n\n\t\t\t\t学生选课操作"<<endl;
+	studentdb *q=P->Next;
+	int i;
+	char N[20],M[20];
+	if(q!=NULL)
+		cout<<"\n\n\n\t\t所有学生名单如下:\n"<<endl;
+	else
+	{	cerr<<"\n\n\n\t\t对不起,暂无学生名单!请先创建!请按任意键继续.."<<endl;
+		return 1; }
+	while(q)
+	{	q->stu.getname(N);
+		cout<<"\t\t\t\t"<<N;
+		cout<<endl;
+		q = q->Next ; }
+	q = P->Next;
+	if(q==NULL)
+		return 1;
+	cout<<"\n\n\t\t 请输入学生姓名:";
+	cin>>N;
+	i=0;
+	q=P->Next;
+	while(q)
+	{	q->stu.getname(M);
+		if(strcmp(N,M)==0)
+			i++;
+		q = q->Next; }
+	int j=0,k=1;
+	if(i==0)
+	{	cout<<"\n\n\t\t没有这个学生!! 请按任意键返回.."<<endl;
+		return 1; }
+	else if(i>1)
+	{	cout<<"\n\n\t\t共找到"<<i<<"个姓名为"<<N<<"的学生"<<endl;
+		cout<<"\t\t选择第几个:";
+		cin>>k; }
+	if(k>i||k<=0)
+	{	cerr<<"\n\t\t\t输入有误!按任意键继续"<<endl;
+		return 1; }
+	q = P->Next;
+	j=0;
+	while(q)
+	{	q->stu.getname(M);
+		if(strcmp(N,M)==0)
+			j++;
+		if(j==k)
+		{	if(q->stu.retfactcourse()>=q->stu.retmaxcourse())
+			{	cout<<"\n\t\t所选课程已满!按任意键继续"<<endl;
+				return 1; }
+			else
+			{	subjectdb *t=X->Next;
+				char N1[20];
+				system("cls");;
+				if(t!=NULL)
+				{	cout<<"\n\n\n\t\t所有课程如下:"<<endl;
+					cout<<"\n\t\t\t\t课程名称\t\t 学分"<<endl; }
+				else
+				{	cerr<<"\n\n\n\t\t对不起,暂时没有课程"<<endl;
+					return 1; }
+				while(t)
+				{	t->sub.getkname(N1);
+					cout<<"\t\t\t\t "<<N1<<setw(26-strlen(N1))<<t->sub.readcredit()<<endl;
+					t = t->Next ; }
+				char N2[20];
+				cout<<"\n\t    输入你所要选的课程: ";
+				cin>>N2;
+				t = X->Next;
+				while(t)
+				{	t->sub.getkname(N1);
+					if(strcmp(N1,N2)==0)
+					{	if(q->stu.findcourse(N2)==1)
+						{	cout<<"\n\t\t此课程你已选过了,不能再选.按任意键继续"<<endl;
+							return 1; }
+						t=X->Next;
+						char NA[20];
+						while(t)
+						{	t->sub.getkname(NA);
+							if(strcmp(NA,N2)==0)
+							{	if(t->sub.retactivestudent()>=t->sub.retmaxstudent ())
+								{	cout<<"\n\t\t此课程已选满,不能选.按任意键继续"<<endl;
+									return 1; }
+							}
+							t = t->Next; }
+						q->stu.addcourse(N2,0.0);
+						cout<<"\n\n\t\t选课成功!按任意键继续"<<endl;
+						return 1; }
+					t = t->Next; }
+				cerr<<"\n\t\t没有此课程!按任意键继续"<<endl; }
+			return 1; }
+		q = q->Next; }
+	return 1; }
+int menu_1_2(studentdb *P,subjectdb *X)   //学生情况
+{	studentdb *q=P->Next;
+	char N[20];
+	system("cls");
+	cout<<"\n\n\t\t\t\t学生情况操作"<<endl;
+	int i;
+	if(q!=NULL)
+	{	cout<<"\n\n\n\t\t所有学生选课信息如下:\n"<<endl<<endl;
+		cout<<"\t\t  姓名\t\t\t选课情况\n"<<endl; }
+	else
+	{	cerr<<"\n\n\n\t\t对不起,暂时没有学生名单!!请按任意键继续.."<<endl;
+		return 1; }
+	while(q)
+	{	q->stu.getname(N);
+		cout<<"\t\t  "<<N<<setw(25-strlen(N))<<" 已选"<<q->stu.retfactcourse()<<" 门课"<<endl;
+		q = q->Next ; }
+	char M[20];
+	cout<<"\n\t\t输入要查看的学生姓名:";
+	cin>>M;
+	i=0;
+	q=P->Next;
+	while(q)
+	{	q->stu.getname(N);
+		if(strcmp(N,M)==0)
+			i++;
+		q = q->Next; }
+	int j=0,k=1;
+	if(i==0)
+	{	cout<<"\n\t\t\t没找到这个学生!!请按任意键继续.."<<endl;
+		return 1; }
+	else if(i>1)
+	{	cout<<"\n\t\t共找到"<<i<<"个姓名为"<<M<<"的学生"<<endl;
+		cout<<"\t\t选择第几个:";
+		cin>>k; }
+	if(k>i||k<=0)
+	{	cerr<<"\n\t\t\t输入有误!按任意键继续.."<<endl;
+		return 1; }
+	q = P->Next;
+	j=0;
+	q=P->Next;
+	while(q)
+	{	q->stu.getname(N);
+		if(strcmp(N,M)==0)
+			j++;
+		if(j==k)
+		{	system("cls");;
+			course *T=q->stu.retroot();
+			if(T==NULL)
+			{	cout<<"\n\n\n\t\t\t"<<N<<"同学你还未选课! 请按任意键继续.."<<endl;
+				return 1; }
+			if (T!=NULL)
+				T = T->Next;
+			cout<<"\n\n\n\t\t"<<N<<"同学你已选"<<q->stu.retfactcourse()<<"门课,具体如下\n\n"<<endl;
+			cout<<"\t\t\t课程名称\t\t成绩\n"<<endl;
+			while(T)
+			{	cout<<"\t\t\t "<<T->cname<<setw(25-strlen(T->cname))<<T->grade<<endl;
+				T = T->Next; }
+			j=0; }
+		q = q->Next; }
+	cout<<"\n\t\t请按任意键继续..."<<endl;
+	return 1; }
+int menu_1_3(subjectdb *P)   //选课情况
+{	subjectdb *q=P->Next;
+	char N[20];
+	system("cls");
+	cout<<"\n\n\t\t\t\t选课情况操作"<<endl;
+	if(q!=NULL)
+	{	cout<<"\n\n\n\t\t所有选课情况如下:\n"<<endl;
+		cout<<"\n\t\t\t课程名称\t\t选课人数\n"<<endl; }
+	else
+	{	cerr<<"\n\n\n\t\t对不起,暂时没有课程!!请按任意键继续.."<<endl;
+		return 1; }
+	while(q)
+	{	q->sub.getkname(N);
+		cout<<"\t\t\t"<<N<<setw(28-strlen(N))<<q->sub.retactivestudent()<<endl;
+		q = q->Next ; }
+	cout<<"\n\t\t请按任意键继续.."<<endl;
+	return 1; }
+int menu_1_4(studentdb *X,subjectdb *P)   //退出系统
+{	menu_2_9(X,P);
+	tuichu();
+	return 0; }
+//管理端功能函数
+int menu_2_1(studentdb *P)   //增加学生
+{	char N[20];
+	system("cls");;
+	cout<<"\n\n\t\t\t\t增加学生操作\n"<<endl;
+	cout<<"\n\n\t\t请输入学生姓名:";
+	cin>>N;
+	cout<<endl<<"\t\t增加学生操作成功,按任意键继续"<<endl;
+	studentdb *newnode = new studentdb;
+	newnode->Next = P->Next ;
+	newnode->stu.readname(N);
+	P->Next = newnode ;
+	return 1; }
+int menu_2_2(subjectdb *P)   //增加课程
+{	float k;
+	char N[20],M[20];
+	system("cls");;
+	cout<<"\n\n\t\t\t\t增加课程操作\n"<<endl;
+	cout<<"\n\n\t\t  请输入课程名称:";
+	cin>>N;
+	cout<<endl;
+	subjectdb *q = P->Next;
+	while(q)
+	{	q->sub.getkname(M);
+		if(strcmp(N,M)==0)
+		{	cout<<"\n\t\t此课程已经存在,按任意键继续"<<endl;
+			return 1; }
+		q = q->Next; }
+	cout<<"\t\t输入此课程的学分:";
+	cin>>k;
+	cout<<"\n\t\t增加课程操作成功,按任意键继续"<<endl;
+	subjectdb *newnode = new subjectdb;
+	newnode->Next = P->Next ;
+	newnode->sub.setkname(N);
+	newnode->sub.getcredit(k);
+	P->Next = newnode ;
+	return 1; }
+int menu_2_3(studentdb *P)   //删除学生
+{	system("cls");
+	cout<<"\n\n\t\t\t\t删除学生操作"<<endl;
+	menu_2_7(P);
+	studentdb *q = P->Next;
+	if(q==NULL)
+		return 1;
+	int i;
+	char N[20],M[20];
+	cout<<"\n\t请输入要删除的学生姓名:";
+	cin>>N;
+	i=0;
+	while(q)
+	{	q->stu.getname(M);
+		if(strcmp(N,M)==0)
+			i++;
+		q = q->Next; }
+	int j=0,k=1;
+	if(i==0)
+	{	cerr<<"\n\t\t没有这个学生!!请按任意键继续.."<<endl;
+		return 1; }
+	else if(i>1)
+	{	cout<<"\n\t\t共找到"<<i<<"个姓名为"<<N<<"的学生"<<endl;
+		cout<<"\n\t\t要删除第几个:";
+		cin>>k; }
+	if(k>i||k<=0)
+		return 1;
+	q = P->Next;
+	studentdb *R = P;
+	j=0;
+	while(q)
+	{	q->stu.getname(M);
+		if(strcmp(N,M)==0)
+			j++;
+		if(j==k)
+		{	R->Next = q->Next;
+			free(q);
+			cout<<"\n\t\t删除学生操作成功,按任意键继续.."<<endl;
+			return 1; }
+		q = q->Next;
+		R = R->Next; }
+	return 1; } 
+int menu_2_4(subjectdb *P)   //删除课程
+{	subjectdb *q=P->Next;
+	char N[20];
+	system("cls");;
+	cout<<"\n\n\t\t\t\t删除课程操作"<<endl;
+	if(q!=NULL)
+		cout<<"\n\n\n\t\t所有课程如下:\n"<<endl;
+	else
+	{	cerr<<"\n\n\n\t\t对不起,暂时没有课程!!请按任意键继续.."<<endl;
+		return 1; }
+	while(q)
+	{	q->sub.getkname(N);
+		cout<<"\t\t\t\t"<<N<<endl;
+		q = q->Next ; }
+	q = P->Next;
+	subjectdb *R = P;
+	if(q==NULL)
+		return 1;
+	char M[20];
+	cout<<"\n\t    请输入要删除的课程:";
+	cin>>M;
+	while(q)
+	{	q->sub.getkname(N);
+		if(strcmp(N,M)==0)
+		{	R->Next = q->Next;
+			free(q);
+			cout<<"\n\t\t删除课程操作成功,按任意键继续"<<endl;
+			return 1; }
+		q = q->Next;
+		R = R->Next; }
+	cerr<<"\n\t\t没有此课程!!\t请按任意键继续.."<<endl;
+	return 1; }
+int menu_2_5(studentdb *X,subjectdb *P)   //填写成绩
+{	subjectdb *q=P->Next;
+	char M[20],N[20],NA[20];
+	float score;
+	system("cls");
+	cout<<"\n\n\t\t\t\t  填写成绩操作\n"<<endl;
+	if(q!=NULL)
+		cout<<"\n\t\t\t课程名称\t\t选课人数\n"<<endl;
+	else
+	{	cout<<"\n\n\n\t\t对不起,暂时没有任何选修课程。请按任意键继续.."<<endl;
+		return 1; }
+	while(q)
+	{	q->sub.getkname(N);
+		cout<<"\t\t\t"<<N<<setw(28-strlen(N))<<q->sub.retactivestudent()<<endl;
+		q = q->Next ; }
+	q = P->Next;
+	cout<<"\n\t请输入课程名称:";
+	cin>>M;
+	while(q)
+	{	q->sub.getkname(N);
+		studentname *K = q->sub.retfirst();
+		if(K!=NULL)
+			K = K->Next;
+		if(strcmp(N,M)==0)
+		{	system("cls");;
+			if(K!=NULL)
+			{	cout<<"\n\n\t\t请填写选修"<<M<<"的学生成绩\n"<<endl;
+				cout<<"\n\t\t\t姓名\t\t成绩"<<endl; }
+			if(K==NULL)
+				cerr<<"\n\t\t\t无任何信息!!请按任意键继续.."<<endl;
+			while(K)
+			{	cout<<"\n\t\t\t"<<K->tname<<"\t\t ";
+				cin>>score;
+				studentdb *XX = X->Next;
+				while(XX)
+				{	XX->stu.getname(NA);
+					if(strcmp(NA,K->tname)==0)
+						XX->stu.wrecourse(M,score);
+					XX = XX->Next; }
+				K = K->Next; }
+			if(K==NULL)
+				cout<<"\n\t\t填写成绩完毕!!请按任意键继续.."<<endl;
+			return 1; }
+		q = q->Next; }
+	cerr<<"\n\t\t没有此课程!!请按任意键继续.."<<endl;
+	return 1; }
+int menu_2_6(subjectdb *P)   //更改学分
+{	float k;
+	system("cls");
+	cout<<"\n\n\n\t\t\t\t更改学分操作\n"<<endl;
+	subjectdb *q = P->Next;
+	char N[20],M[20];
+	if(q!=NULL)
+		cout<<"\n\n\n\t\t 所有课程如下:\n"<<endl;
+	else
+	{	cerr<<"\n\n\n\t\t对不起,暂时没有任何可选课程。请按任意键继续.."<<endl;
+		return 1; }
+	while(q)
+	{	q->sub.getkname(N);
+		cout<<"\t\t\t\t  "<<N<<endl;
+		q = q->Next ; }
+	q = P->Next;
+	cout<<"\n\n\n\t\t请输入要改的课程:";
+	cin>>M;
+	while(q)
+	{	q->sub.getkname(N);
+		if(strcmp(N,M)==0)
+		{	cout<<"\n\t\t\t原来学分为:"<<q->sub.readcredit()<<endl;
+			cout<<"\n\t\t\t现要更改为:";
+			cin>>k;
+			q->sub.getcredit(k);
+			cout<<"\n\t\t更改课程学分成功,按任意键继续"<<endl;
+			return 1; }
+		q = q->Next; }
+	cerr<<"\n\t\t无此课程!!请按任意键继续.."<<endl;
+	return 1; }
+int menu_2_7(studentdb *P)   //学生情况
+{	studentdb *q=P->Next;
+	char N[20];
+	system("cls");
+	cout<<"\n\n\n\t\t\t\t学生情况操作\n"<<endl;
+	if(q!=NULL)
+		cout<<"\n\n\n\t\t所有学生名单如下:\n"<<endl;
+	else
+	{	cerr<<"\n\n\n\t\t对不起,暂时没有学生名单!请按任意键继续.."<<endl;
+		return 1; }
+	while(q)
+	{	q->stu.getname(N);
+		cout<<"\t\t\t\t"<<N;
+		cout<<endl;
+		q = q->Next ; }
+	cout<<"\n\t\t按任意键继续.."<<endl;
+	return 1; }
+int menu_2_8(subjectdb *P)   //选课情况
+{	subjectdb *q = P->Next;
+	char M[20],N[20];
+	system("cls");
+	cout<<"\n\n\t\t\t\t选课情况操作"<<endl;
+	if(q!=NULL)
+	{	cout<<"\n\n\n\t\t所有选课情况如下:\n"<<endl;
+		cout<<"\n\t\t\t课程名称\t\t选课人数\n"<<endl; }
+	else
+	{	cerr<<"\n\n\n\t\t对不起,暂时没有课程!!请按任意键继续.."<<endl;
+		return 1; }
+	while(q)
+	{	q->sub.getkname(N);
+		cout<<"\t\t\t"<<N<<setw(28-strlen(N))<<q->sub.retactivestudent()<<endl;
+		q = q->Next ; }
+	q = P->Next;
+	cout<<"\n\t请输入课程名称:";
+	cin>>M;
+	while(q)
+	{	q->sub.getkname(N);
+		studentname *K = q->sub.retfirst();
+		if(K!=NULL)
+			K = K->Next;
+		if(strcmp(N,M)==0)
+		{	system("cls");;
+			if(K==NULL)
+			{	cerr<<"\n\n\t无任何选课信息!!\t请按任意键继续.."<<endl;
+				return 1;	}
+			cout<<"\n\n\n\t\t选修"<<M<<"课的学生名单如下:\n"<<endl;
+			cout<<"\n\t\t\t姓名\t\t  成绩"<<endl;
+			while(K)
+			{	cout<<"\n\t\t\t"<<K->tname<<setw(20-strlen(K->tname))<<K->result<<endl;
+				K = K->Next; }
+			cout<<"\n\t\t请按任意键继续.."<<endl;
+			return 1; }
+		q = q->Next; }
+	cerr<<"\n\t\t无此课程!!\t请按任意键继续.."<<endl;
+	return 1; } 
+int menu_2_9(studentdb *Y,subjectdb *P)   //保存数据
+{	studentdb *Z = Y->Next;
+	subjectdb *X = P->Next;
+	system("cls");;
+	fstream file("subject.txt",ios::out);
+	while(X)
+	{	file.write ((char *)&(X->sub),sizeof(X->sub));
+		X = X->Next; }
+	file.close();
+	fstream file1("student.txt",ios::out);
+	fstream file2("course.txt",ios::out);
+	while(Z)
+	{	file1.write ((char *)&(Z->stu),sizeof(Z->stu));
+		int time = Z->stu.retfactcourse();
+		course *co = Z->stu.retroot(),*co1;
+		if(co!=NULL)
+			co1 = co->Next;
+		while(time)
+		{	file2.write((char *)(co1),sizeof(*co1));
+			co1 = co1->Next;
+			time = time - 1; }
+		Z = Z->Next; }
+	file2.close ();
+	file1.close();
+	cout<<"\n\n\n\t\t\t保存数据成功!按任意键继续.."<<endl;
+	return 1; }
+int menu_2_0()    //退出系统
+{	tuichu();
+	return 0; }
+int main()
+{	subjectdb *P = new subjectdb,*Q=P;
+	P->Next = NULL;
+	subject M;
+	fstream file("subject.txt",ios::in);
+	while(1)
+	{	file.read((char *)&M,sizeof(M));
+		if(!file) break;
+		Q->Next = new subjectdb;
+		Q->Next ->Next = NULL;
+		Q->Next ->sub = M;
+		Q = Q->Next; }
+	file.close ();
+	studentdb *Y = new studentdb,*X=Y;
+	Y->Next=NULL;
+	student N;
+	course O;
+	fstream file1("student.txt",ios::in);
+	fstream file2("course.txt",ios::in);
+	while(1)
+	{	file1.read((char *)&N,sizeof(N));
+		if(!file1) break;
+		Y->Next = new studentdb;
+		Y->Next ->Next = NULL;
+		Y->Next ->stu = N;
+		int time = N.retfactcourse();
+		Y->Next->stu.clrroot ();
+		while(time)
+		{	file2.read ((char *)&O,sizeof(course));
+			if(!file2) break;
+			Y->Next->stu.addcourse(O.cname ,O.grade);
+			time--; }
+		Y=Y->Next; }
+	file2.close ();
+	file1.close ();
+	Q=P->Next;
+	while(Q)
+	{	Q->sub.clractivestudnet();
+		Q->sub.findstudent(X);
+		Q = Q->Next; }
+	char c;char b;
+	int br=1;b = menu();
+	if(b=='1')
+	{	while(1)
+		{	c = custom();
+			switch(c)
+			{case '1':br = menu_1_1(X,P);getch();break;  //学生选课
+			 case '2':br = menu_1_2(X,P);getch();break;  //学生情况
+			 case '3':br = menu_1_3(P);getch();  break;  //选课情况
+			 case '4':br = menu_1_4(X,P);        break;  //退出系统
+			}
+			if (br == 0)  break; } }
+	if(b=='2')
+	{	password();
+		while(1)
+		{	c = server();
+			switch(c)
+			{case '1':br = menu_2_1(X);getch();  break;   //增加学生
+			 case '2':br = menu_2_2(P);getch();  break;   //增加课程
+			 case '4':br = menu_2_4(P);getch();  break;   //删除课程
+		 	 case '3':br = menu_2_3(X);getch();  break;   //删除学生
+			 case '5':br = menu_2_5(X,P);getch();break;   //填写成绩
+			 case '6':br = menu_2_6(P);getch();  break;   //更改学分
+		 	 case '7':br = menu_2_7(X);getch();  break;   //学生情况
+			 case '8':br = menu_2_8(P);getch();  break;   //选课情况
+			 case '9':br = menu_2_9(X,P);getch();break;   //保存数据
+			 case '0':br = menu_2_0();           break;   //退出系统
+			}
+			if (br == 0)
+				break;}
+	}
+	return 0; }
